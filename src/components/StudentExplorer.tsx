@@ -30,7 +30,7 @@ export function StudentExplorer({ students, onSelectStudent, onOpenAddModal }: P
   const [sortKey, setSortKey] = useState<SortKey>('student_id');
   const [sortAsc, setSortAsc] = useState(true);
   const [page, setPage] = useState(1);
-  const pageSize = 12;
+  const pageSize = 50;
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {

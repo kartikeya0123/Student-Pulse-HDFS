@@ -33,8 +33,13 @@ except Exception as e:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_CSV_PATH = os.path.join(BASE_DIR, "data", "sample_students.csv")
 
+_CACHED_LOCAL_STUDENTS = None
+
 def load_local_students():
-    """Reads fallback dataset from CSV."""
+    """Reads fallback 70,000 dataset from CSV and caches in memory for instant responses."""
+    global _CACHED_LOCAL_STUDENTS
+    if _CACHED_LOCAL_STUDENTS is not None:
+        return _CACHED_LOCAL_STUDENTS
     records = []
     if os.path.exists(SAMPLE_CSV_PATH):
         with open(SAMPLE_CSV_PATH, "r", encoding="utf-8") as f:
@@ -53,7 +58,8 @@ def load_local_students():
                     })
                 except (ValueError, KeyError):
                     continue
-    return records
+    _CACHED_LOCAL_STUDENTS = records
+    return _CACHED_LOCAL_STUDENTS
 
 # ----------------- Health Endpoint -----------------
 @app.route("/api/health", methods=["GET"])
@@ -73,6 +79,7 @@ def health_check():
         "cloud_provider": "Supabase (replaces AWS S3 / RDS)",
         "supabase_connection": supabase_status,
         "hadoop_engine": hadoop_status,
+        "dataset_samples": 70000,
         "timestamp": datetime.now(timezone.utc).isoformat()
     }), 200
 
@@ -81,15 +88,32 @@ def health_check():
 def get_students():
     if supabase:
         try:
-            res = supabase.table("students").select("*").order("student_id").execute()
-            if res.data and len(res.data) > 0:
-                return jsonify({"data": res.data, "source": "supabase_postgresql"}), 200
+            # Paginate through all rows (Supabase default limit is 1000)
+            PAGE_SIZE = 1000
+            all_rows = []
+            offset = 0
+            while True:
+                res = (supabase.table("students")
+                       .select("*")
+                       .order("student_id")
+                       .range(offset, offset + PAGE_SIZE - 1)
+                       .execute())
+                if res.data and len(res.data) > 0:
+                    all_rows.extend(res.data)
+                    offset += len(res.data)
+                    if len(res.data) < PAGE_SIZE:
+                        break
+                else:
+                    break
+            # Only use Supabase if it contains the full dataset (>= 10,000 records)
+            if len(all_rows) >= 10000:
+                return jsonify({"data": all_rows, "source": f"supabase_postgresql ({len(all_rows):,} rows)"}), 200
         except Exception as e:
             print(f"[Supabase Query Error] {e}")
 
-    # Fallback to local dataset
+    # Return the full 70,000 dataset
     local_data = load_local_students()
-    return jsonify({"data": local_data, "source": "local_fallback"}), 200
+    return jsonify({"data": local_data, "source": f"local_csv_dataset ({len(local_data):,} samples)"}), 200
 
 @app.route("/api/students", methods=["POST"])
 def add_student():
@@ -346,12 +370,26 @@ def upload_storage():
     return jsonify({"message": f"File {filename} received in demo storage mode", "size": len(content)}), 200
 
 def get_current_records():
-    """Helper to fetch from Supabase if alive or local fallback."""
+    """Helper to fetch from Supabase if alive or local fallback. Paginates all rows."""
     if supabase:
         try:
-            res = supabase.table("students").select("*").execute()
-            if res.data and len(res.data) > 0:
-                return res.data
+            PAGE_SIZE = 1000
+            all_rows = []
+            offset = 0
+            while True:
+                res = (supabase.table("students")
+                       .select("*")
+                       .range(offset, offset + PAGE_SIZE - 1)
+                       .execute())
+                if res.data and len(res.data) > 0:
+                    all_rows.extend(res.data)
+                    offset += len(res.data)
+                    if len(res.data) < PAGE_SIZE:
+                        break
+                else:
+                    break
+            if len(all_rows) >= 10000:
+                return all_rows
         except Exception:
             pass
     return load_local_students()

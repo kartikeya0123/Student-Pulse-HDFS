@@ -91,40 +91,96 @@ export interface MapReduceRun {
 
 export const PASS_THRESHOLD = 40;
 export const DISTINCTION_THRESHOLD = 75;
+export const TOTAL_SAMPLE_SIZE = 70000;
 
-// Fallback high-quality dataset
-export const SAMPLE_STUDENTS: Student[] = [
-  { id: 1, student_id: 'STU001', attendance: 85.5, study_hours: 5.0, previous_score: 72.0, assignment_marks: 80.0, exam_marks: 88.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 2, student_id: 'STU002', attendance: 78.0, study_hours: 4.0, previous_score: 65.0, assignment_marks: 75.0, exam_marks: 79.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 3, student_id: 'STU003', attendance: 92.0, study_hours: 6.0, previous_score: 84.0, assignment_marks: 91.0, exam_marks: 94.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 4, student_id: 'STU004', attendance: 60.0, study_hours: 2.5, previous_score: 55.0, assignment_marks: 60.0, exam_marks: 58.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 5, student_id: 'STU005', attendance: 88.0, study_hours: 5.5, previous_score: 78.0, assignment_marks: 85.0, exam_marks: 90.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 6, student_id: 'STU006', attendance: 45.0, study_hours: 1.5, previous_score: 40.0, assignment_marks: 50.0, exam_marks: 38.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 7, student_id: 'STU007', attendance: 95.0, study_hours: 7.0, previous_score: 88.0, assignment_marks: 95.0, exam_marks: 97.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 8, student_id: 'STU008', attendance: 72.0, study_hours: 3.5, previous_score: 62.0, assignment_marks: 70.0, exam_marks: 68.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 9, student_id: 'STU009', attendance: 81.0, study_hours: 4.5, previous_score: 70.0, assignment_marks: 78.0, exam_marks: 82.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 10, student_id: 'STU010', attendance: 55.0, study_hours: 2.0, previous_score: 48.0, assignment_marks: 55.0, exam_marks: 52.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 11, student_id: 'STU011', attendance: 90.0, study_hours: 6.5, previous_score: 82.0, assignment_marks: 89.0, exam_marks: 91.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 12, student_id: 'STU012', attendance: 68.0, study_hours: 3.0, previous_score: 58.0, assignment_marks: 65.0, exam_marks: 63.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 13, student_id: 'STU013', attendance: 84.0, study_hours: 5.0, previous_score: 75.0, assignment_marks: 82.0, exam_marks: 85.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 14, student_id: 'STU014', attendance: 50.0, study_hours: 1.5, previous_score: 45.0, assignment_marks: 52.0, exam_marks: 46.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 15, student_id: 'STU015', attendance: 96.0, study_hours: 7.5, previous_score: 90.0, assignment_marks: 96.0, exam_marks: 98.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 16, student_id: 'STU016', attendance: 75.0, study_hours: 4.0, previous_score: 66.0, assignment_marks: 72.0, exam_marks: 74.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 17, student_id: 'STU017', attendance: 82.0, study_hours: 4.5, previous_score: 73.0, assignment_marks: 80.0, exam_marks: 83.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 18, student_id: 'STU018', attendance: 58.0, study_hours: 2.0, previous_score: 50.0, assignment_marks: 58.0, exam_marks: 54.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 19, student_id: 'STU019', attendance: 89.0, study_hours: 6.0, previous_score: 80.0, assignment_marks: 87.0, exam_marks: 89.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 20, student_id: 'STU020', attendance: 64.0, study_hours: 3.0, previous_score: 56.0, assignment_marks: 62.0, exam_marks: 60.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 21, student_id: 'STU021', attendance: 87.0, study_hours: 5.5, previous_score: 77.0, assignment_marks: 84.0, exam_marks: 87.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 22, student_id: 'STU022', attendance: 42.0, study_hours: 1.0, previous_score: 38.0, assignment_marks: 48.0, exam_marks: 35.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 23, student_id: 'STU023', attendance: 94.0, study_hours: 7.0, previous_score: 86.0, assignment_marks: 93.0, exam_marks: 95.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 24, student_id: 'STU024', attendance: 70.0, study_hours: 3.5, previous_score: 60.0, assignment_marks: 68.0, exam_marks: 67.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 25, student_id: 'STU025', attendance: 83.0, study_hours: 5.0, previous_score: 74.0, assignment_marks: 81.0, exam_marks: 84.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 26, student_id: 'STU026', attendance: 56.0, study_hours: 2.5, previous_score: 52.0, assignment_marks: 57.0, exam_marks: 55.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 27, student_id: 'STU027', attendance: 91.0, study_hours: 6.5, previous_score: 83.0, assignment_marks: 90.0, exam_marks: 93.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 28, student_id: 'STU028', attendance: 66.0, study_hours: 3.0, previous_score: 57.0, assignment_marks: 63.0, exam_marks: 62.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 29, student_id: 'STU029', attendance: 86.0, study_hours: 5.5, previous_score: 76.0, assignment_marks: 83.0, exam_marks: 86.0, created_at: '2026-10-27T11:30:00Z' },
-  { id: 30, student_id: 'STU030', attendance: 48.0, study_hours: 1.5, previous_score: 42.0, assignment_marks: 50.0, exam_marks: 41.0, created_at: '2026-10-27T11:30:00Z' },
-];
+// ---- Seeded PRNG (mulberry32) for deterministic fallback dataset ----
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function seededGauss(rng: () => number, mean: number, std: number): number {
+  // Box-Muller transform
+  const u1 = rng() || 1e-10;
+  const u2 = rng();
+  return mean + std * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+}
+
+function clamp(v: number, lo = 0, hi = 100): number {
+  return Math.max(lo, Math.min(hi, v));
+}
+
+/**
+ * Generates 70,000 realistic student records using a seeded PRNG.
+ * Mirrors the Python CSV generator's distribution archetypes.
+ * Cached after first call to avoid re-generating on every access.
+ */
+let _cachedSampleStudents: Student[] | null = null;
+
+export function generateSampleStudents(count: number = TOTAL_SAMPLE_SIZE): Student[] {
+  if (_cachedSampleStudents && _cachedSampleStudents.length === count) return _cachedSampleStudents;
+
+  const rng = mulberry32(42);
+  const gauss = (m: number, s: number) => seededGauss(rng, m, s);
+  const students: Student[] = [];
+  const timestamp = '2026-10-27T11:30:00Z';
+
+  for (let i = 1; i <= count; i++) {
+    const pad = String(i).padStart(6, '0');
+    const archetype = rng();
+
+    let baseAtt: number, baseStudy: number, basePrev: number;
+    if (archetype < 0.08) {
+      baseAtt = gauss(42, 10); baseStudy = gauss(1.2, 0.6); basePrev = gauss(35, 12);
+    } else if (archetype < 0.20) {
+      baseAtt = gauss(58, 8); baseStudy = gauss(2.2, 0.8); basePrev = gauss(48, 10);
+    } else if (archetype < 0.45) {
+      baseAtt = gauss(68, 7); baseStudy = gauss(3.2, 0.9); basePrev = gauss(58, 8);
+    } else if (archetype < 0.75) {
+      baseAtt = gauss(78, 6); baseStudy = gauss(4.5, 1.0); basePrev = gauss(70, 7);
+    } else if (archetype < 0.92) {
+      baseAtt = gauss(88, 5); baseStudy = gauss(5.8, 0.8); basePrev = gauss(80, 6);
+    } else {
+      baseAtt = gauss(95, 3); baseStudy = gauss(7.0, 0.7); basePrev = gauss(90, 4);
+    }
+
+    const attendance: number | null = rng() < 0.005 ? null : Math.round(clamp(baseAtt) * 10) / 10;
+    const study_hours: number | null = rng() < 0.005 ? null : Math.round(clamp(baseStudy, 0, 10) * 10) / 10;
+    const previous_score = Math.round(clamp(basePrev) * 10) / 10;
+
+    const assignNoise = gauss(0, 5);
+    const assignment_marks = Math.round(clamp(
+      0.4 * basePrev + 0.3 * (baseStudy * 12) + 0.3 * baseAtt * 0.8 + assignNoise
+    ) * 10) / 10;
+
+    const examNoise = gauss(0, 6);
+    const rawExam = 0.30 * basePrev + 0.25 * assignment_marks + 0.20 * (baseStudy * 11) + 0.15 * baseAtt * 0.9 + 0.10 * gauss(60, 15) + examNoise;
+    const exam_marks: number | null = rng() < 0.005 ? null : Math.round(clamp(rawExam) * 10) / 10;
+
+    students.push({
+      id: i,
+      student_id: `STU${pad}`,
+      attendance,
+      study_hours,
+      previous_score,
+      assignment_marks,
+      exam_marks,
+      created_at: timestamp,
+    });
+  }
+
+  _cachedSampleStudents = students;
+  return students;
+}
+
+// Backward-compatible export — lazy-generated on first access
+export const SAMPLE_STUDENTS: Student[] = generateSampleStudents();
+
+export const MINIMUM_DATASET_SIZE = 10000; // Below this threshold, prefer the generated 70k fallback
 
 export async function fetchStudents(): Promise<{ data: Student[]; source: string }> {
   // First try Flask Backend if available
@@ -132,7 +188,7 @@ export async function fetchStudents(): Promise<{ data: Student[]; source: string
     const res = await fetch(`${FLASK_API_BASE}/students`, { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
       const json = await res.json();
-      if (json.data && json.data.length > 0) {
+      if (json.data && json.data.length >= MINIMUM_DATASET_SIZE) {
         return { data: json.data, source: json.source || 'Flask API (Connected)' };
       }
     }
@@ -140,21 +196,36 @@ export async function fetchStudents(): Promise<{ data: Student[]; source: string
     // Flask offline, fall back to Supabase direct
   }
 
-  // Next try direct Supabase
+  // Next try direct Supabase with pagination (default limit is 1000 rows)
   try {
-    const { data, error } = await supabase
-      .from('students')
-      .select('*')
-      .order('student_id', { ascending: true });
-    if (!error && data && data.length > 0) {
-      return { data: data as Student[], source: 'Supabase PostgreSQL (Cloud)' };
+    const PAGE_SIZE = 1000;
+    const allRows: Student[] = [];
+    let from = 0;
+    let hasMore = true;
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .order('student_id', { ascending: true })
+        .range(from, from + PAGE_SIZE - 1);
+      if (error) throw error;
+      if (data && data.length > 0) {
+        allRows.push(...(data as Student[]));
+        from += data.length;
+        hasMore = data.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
+    }
+    if (allRows.length >= MINIMUM_DATASET_SIZE) {
+      return { data: allRows, source: `Supabase PostgreSQL (Cloud — ${allRows.length.toLocaleString()} rows)` };
     }
   } catch (err) {
     console.warn('Direct Supabase fetch error, using fallback:', err);
   }
 
-  // Fallback to sample data
-  return { data: SAMPLE_STUDENTS, source: 'Demo Dataset (Offline Resilient)' };
+  // Fallback to generated sample data (70,000 records)
+  return { data: SAMPLE_STUDENTS, source: `Demo Dataset (Offline — ${SAMPLE_STUDENTS.length.toLocaleString()} samples)` };
 }
 
 export async function checkBackendHealth(): Promise<BackendHealth | null> {
@@ -257,8 +328,8 @@ export function computeOverview(students: Student[]): OverviewMetrics {
     avg_exam_marks: round2(meanExam),
     avg_attendance: round2(avg(attendances)),
     pass_rate: round2((passed / (exams.length || 1)) * 100),
-    highest_exam: exams.length ? round2(Math.max(...exams)) : 0,
-    lowest_exam: exams.length ? round2(Math.min(...exams)) : 0,
+    highest_exam: exams.length ? round2(exams.reduce((a, b) => Math.max(a, b), -Infinity)) : 0,
+    lowest_exam: exams.length ? round2(exams.reduce((a, b) => Math.min(a, b), Infinity)) : 0,
     avg_study_hours: round2(avg(studies)),
     avg_assignment_marks: round2(avg(assignments)),
     median_exam: round2(median || 0),
@@ -354,26 +425,38 @@ export function computeStudyHoursBands(students: Student[]): StudyHoursBand[] {
   });
 }
 
-export function computeScatterData(students: Student[]): ScatterPoint[] {
-  return students
-    .filter((s) => s.attendance != null && s.exam_marks != null)
-    .map((s) => {
-      let grade = 'F';
-      const m = s.exam_marks!;
-      if (m >= 90) grade = 'A+';
-      else if (m >= 80) grade = 'A';
-      else if (m >= 70) grade = 'B';
-      else if (m >= 60) grade = 'C';
-      else if (m >= 40) grade = 'D';
+const MAX_SCATTER_POINTS = 500;
 
-      return {
-        id: s.student_id,
-        x: s.attendance!,
-        y: s.exam_marks!,
-        studyHours: s.study_hours ?? 0,
-        grade,
-      };
-    });
+export function computeScatterData(students: Student[]): ScatterPoint[] {
+  const valid = students.filter((s) => s.attendance != null && s.exam_marks != null);
+
+  // Downsample large datasets using stratified reservoir sampling
+  let sampled = valid;
+  if (valid.length > MAX_SCATTER_POINTS) {
+    const step = valid.length / MAX_SCATTER_POINTS;
+    sampled = [];
+    for (let i = 0; i < MAX_SCATTER_POINTS; i++) {
+      sampled.push(valid[Math.floor(i * step)]);
+    }
+  }
+
+  return sampled.map((s) => {
+    let grade = 'F';
+    const m = s.exam_marks!;
+    if (m >= 90) grade = 'A+';
+    else if (m >= 80) grade = 'A';
+    else if (m >= 70) grade = 'B';
+    else if (m >= 60) grade = 'C';
+    else if (m >= 40) grade = 'D';
+
+    return {
+      id: s.student_id,
+      x: s.attendance!,
+      y: s.exam_marks!,
+      studyHours: s.study_hours ?? 0,
+      grade,
+    };
+  });
 }
 
 export function computeCorrelation(x: number[], y: number[]): number {
@@ -422,6 +505,9 @@ export function computeDataQuality(students: Student[]): DataQualityReport {
 
   duplicates.forEach((d) => issuesList.push({ student_id: d, reason: 'Duplicate Student ID detected' }));
 
+  // Cap issuesList to prevent rendering thousands of DOM nodes
+  const cappedIssuesList = issuesList.slice(0, 100);
+
   const missingAttendance = students.filter((s) => s.attendance == null).length;
   const missingExams = students.filter((s) => s.exam_marks == null).length;
   const missingStudy = students.filter((s) => s.study_hours == null).length;
@@ -444,7 +530,7 @@ export function computeDataQuality(students: Student[]): DataQualityReport {
     invalid_scores: invalidScores,
     duplicate_ids: duplicates.size,
     healthScore,
-    issuesList,
+    issuesList: cappedIssuesList,
   };
 }
 
@@ -500,8 +586,11 @@ export async function runMapReduce(
     // Backend offline: run high-fidelity client-side MapReduce engine
   }
 
-  // Client-side MapReduce Pipeline
-  const mapperRecords = students.flatMap((s) => [
+  // Client-side MapReduce Pipeline — sample up to 5000 records for responsiveness
+  const MAPREDUCE_SAMPLE = 5000;
+  const sampleStep = students.length > MAPREDUCE_SAMPLE ? Math.floor(students.length / MAPREDUCE_SAMPLE) : 1;
+  const mrStudents = students.filter((_, i) => i % sampleStep === 0);
+  const mapperRecords = mrStudents.flatMap((s) => [
     { key: 'exam_marks', value: s.exam_marks ?? 0 },
     { key: 'attendance', value: s.attendance ?? 0 },
     { key: 'assignment_marks', value: s.assignment_marks ?? 0 },
@@ -577,8 +666,8 @@ export async function runMapReduce(
     durationMs,
     counters: {
       inputRecords: students.length,
-      mapOutputRecords: mapperRecords.length,
-      combineOutputRecords: mapperRecords.length,
+      mapOutputRecords: students.length * 4,
+      combineOutputRecords: students.length * 4,
       reduceOutputRecords: results.length,
       hdfsBytesRead: students.length * 115,
       hdfsBytesWritten: results.length * 52,

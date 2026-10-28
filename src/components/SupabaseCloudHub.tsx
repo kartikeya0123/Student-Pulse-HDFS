@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { GlassCard } from '@/components/GlassCard';
 import { supabase, SUPABASE_CONFIG, type Student, type AnalyticsResult } from '@/lib/supabase';
-import { SAMPLE_STUDENTS } from '@/lib/analytics';
+import { generateSampleStudents, TOTAL_SAMPLE_SIZE } from '@/lib/analytics';
 
 interface Props {
   students: Student[];
@@ -29,11 +29,12 @@ export function SupabaseCloudHub({ students, onRefreshData }: Props) {
   const [analyticsRows, setAnalyticsRows] = useState<AnalyticsResult[]>([]);
   const [seeding, setSeeding] = useState(false);
   const [seedSuccess, setSeedSuccess] = useState(false);
+  const [seedProgress, setSeedProgress] = useState('');
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
 
   // Storage virtual files
   const [storageFiles] = useState([
-    { name: 'uploads/student_performance.csv', size: '4.8 KB', updated: 'Today, 11:30 AM', desc: 'Active primary raw dataset' },
+    { name: 'uploads/student_performance.csv', size: '2.4 MB', updated: 'Today, 11:30 AM', desc: 'Active primary raw dataset (70,000 records)' },
     { name: 'reports/academic_summary.csv', size: '2.1 KB', updated: 'Today, 11:35 AM', desc: 'MapReduce aggregated report' },
     { name: 'exports/mapreduce_part-r-00000.csv', size: '1.4 KB', updated: 'Today, 11:42 AM', desc: 'HDFS to Cloud output backup' },
   ]);
@@ -51,24 +52,36 @@ export function SupabaseCloudHub({ students, onRefreshData }: Props) {
   const handleSeedDataset = async () => {
     setSeeding(true);
     setSeedSuccess(false);
+    setSeedProgress('Generating 70,000 student records...');
     try {
-      const recordsToInsert = SAMPLE_STUDENTS.map((s) => ({
-        student_id: s.student_id,
-        attendance: s.attendance,
-        study_hours: s.study_hours,
-        previous_score: s.previous_score,
-        assignment_marks: s.assignment_marks,
-        exam_marks: s.exam_marks,
-      }));
+      const allStudents = generateSampleStudents(TOTAL_SAMPLE_SIZE);
+      const BATCH_SIZE = 500;
+      const totalBatches = Math.ceil(allStudents.length / BATCH_SIZE);
 
-      const { error } = await supabase.from('students').upsert(recordsToInsert, { onConflict: 'student_id' });
-      if (error) throw error;
+      for (let i = 0; i < totalBatches; i++) {
+        const batch = allStudents.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE).map((s) => ({
+          student_id: s.student_id,
+          attendance: s.attendance,
+          study_hours: s.study_hours,
+          previous_score: s.previous_score,
+          assignment_marks: s.assignment_marks,
+          exam_marks: s.exam_marks,
+        }));
+
+        const { error } = await supabase.from('students').upsert(batch, { onConflict: 'student_id' });
+        if (error) throw error;
+
+        const inserted = Math.min((i + 1) * BATCH_SIZE, allStudents.length);
+        setSeedProgress(`Seeded ${inserted.toLocaleString()} / ${allStudents.length.toLocaleString()} records (${Math.round((inserted / allStudents.length) * 100)}%)`);
+      }
 
       setSeedSuccess(true);
+      setSeedProgress('');
       onRefreshData();
       setTimeout(() => setSeedSuccess(false), 3000);
     } catch (err) {
       alert(`Seeding failed: ${err instanceof Error ? err.message : String(err)}`);
+      setSeedProgress('');
     } finally {
       setSeeding(false);
     }
@@ -135,7 +148,7 @@ export function SupabaseCloudHub({ students, onRefreshData }: Props) {
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-cyan-300 text-xs font-semibold transition disabled:opacity-40"
             >
               {seeding ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-              Seed 50+ Real Dataset
+              Seed 70K Dataset
             </button>
             <button
               onClick={downloadDataset}
@@ -150,7 +163,14 @@ export function SupabaseCloudHub({ students, onRefreshData }: Props) {
         {seedSuccess && (
           <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2 animate-fade-up">
             <CheckCircle2 size={16} />
-            <span>Dataset successfully written to Supabase PostgreSQL table 'students'!</span>
+            <span>70,000 records successfully written to Supabase PostgreSQL table 'students'!</span>
+          </div>
+        )}
+
+        {seedProgress && (
+          <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs flex items-center gap-2 animate-pulse">
+            <Loader2 size={16} className="animate-spin" />
+            <span>{seedProgress}</span>
           </div>
         )}
 
